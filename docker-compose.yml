@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+
+  edu_exchange_backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: edu_exchange_api
+    ports:
+      - "9898:9898"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:edu_exchange_database://edu_exchange_database:5432/edu_exchange_db
+      - SPRING_DATASOURCE_DRIVER-CLASS= org.postgresql.Driver
+    networks:
+      - edu_exchange_network
+
+  edu_exchange_frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edu_exchange_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/edu_exchange_frontend_volume
+      - .:/edu_exchange_frontend_volume/node_modules
+    networks:
+      - edu_exchange_network
+
+  edu_exchange_database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: edu_exchange_db
+      POSTGRES_PASSWORD: gangbang
+      POSTGRES_USER: edu_db_user
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - .:/edu_exchange_db_volume/postgres
+    networks:
+      - edu_exchange_network
+
+networks:
+  edu_exchange_network:
+    driver: bridge
