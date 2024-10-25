@@ -11,9 +11,10 @@ import Icon from "@/components/Icon";
 import PostRuleCard from "@/components/PostRuleCard";
 import FilterByTopicCard from "@/components/FilterByTopicCard";
 import TeachersListCard from "@/components/TeachersListCard";
-import axiosRequest from "@/utils/axiosRequest";
 import { useToast } from "@/components/ui/use-toast";
 import globalStore from "@/store/globalStore";
+import { useSession } from 'next-auth/react'
+import axios from "axios";
 
 const index = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +27,10 @@ const index = () => {
   const [posts, setPosts] = useState([]);
   const [totalPages, setTotalPages] = useState(null);
   const itemsPerPage = 10;
+
+  const { data: session, status } = useSession({
+    required: true,
+  });
 
   const fileUploadInputRef = useRef(null);
 
@@ -45,8 +50,12 @@ const index = () => {
 
   const fetchData = () => {
     setIsLoading(true);
-    axiosRequest
-      .get(`/posts?page=${page}&size=${itemsPerPage}`)
+    axios
+      .get(`/posts?page=${page}&size=${itemsPerPage}`, {
+        headers:{
+          Authorization: session.accessToken
+        }
+      })
       .then((res) => {
         if (res.status === 200) {
           const { content, totalPages } = res.data;
@@ -71,8 +80,10 @@ const index = () => {
   };
 
   const fetchByFilter = (filter) => {
-    axiosRequest
-      .get(`/topics/${filter}/posts`)
+    axios
+      .get(`/topics/${filter}/posts`, {headers: {
+        Authorization: session.accessToken
+      }})
       .then((res) => setPosts(res?.data?.content))
       .catch((err) => {
         toast({

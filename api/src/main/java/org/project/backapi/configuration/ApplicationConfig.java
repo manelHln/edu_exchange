@@ -3,7 +3,6 @@ package org.project.backapi.configuration;
 
 import lombok.RequiredArgsConstructor;
 import org.project.backapi.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,8 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     @Bean
     public UserDetailsService userDetailsService () {
         return new UserDetailsService() {

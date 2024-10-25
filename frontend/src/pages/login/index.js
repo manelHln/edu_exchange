@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { montserrat, dm_sans } from "@/utils/fonts";
@@ -5,21 +7,24 @@ import Icon from "@/components/Icon";
 import InputWithLabel from "@/components/InputWithLabel";
 import Button from "@/components/Button";
 import { useToast } from "@/components/ui/use-toast";
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import { useUserInfoStore } from "@/store/userInfoStore";
+// import axios from "axios";
+// import { useRouter } from "next/navigation";
+// import { useUserInfoStore } from "@/store/userInfoStore";
+import { signIn } from "next-auth/react";
 
 const inputClassname =
   "block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 border-none focus:ring-1 focus:outline-custom-orange sm:text-sm sm:leading-6";
 
 export default function LoginPage() {
-  const fetchUserInfo = useUserInfoStore((state)=> state.fetchUserInfo)
+  // const fetchUserInfo = useUserInfoStore((state) => state.fetchUserInfo);
   const [passwordView, setPasswordView] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
+  // const router = useRouter();
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const formdata = new FormData(e.target);
     const jsonData = Array.from(formdata.entries()).reduce(
       (acc, [key, value]) => {
@@ -29,39 +34,67 @@ export default function LoginPage() {
       {}
     );
 
-    axios
-      .post(`${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/login`, jsonData)
-      .then((res) => {
-        console.log(res);
-        if (res.status === 200) {
-          toast({
-            variant: "primary",
-            description: "Successfully logged in, now redirecting",
-          });
+    const res = await signIn("credentials", {
+      redirect: true,
+      ...jsonData,
+      callbackUrl: '/chat'
+    })
 
-          localStorage.setItem("edu_exchange_access_token", res.data.token);
-          fetchUserInfo()
-          router.push("/posts");
-        }
-      })
-      .catch((err) => {
-        if (err.message.includes("403")) {
-          toast({
-            variant: "destructive",
-            description: "Username or password incorrect",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            description: err.message,
-          });
-        }
+    console.log(res);
+
+    if (res.status === 200) {
+      toast({
+        variant: "primary",
+        description: "Successfully logged in, now redirecting",
       });
+    }else {
+      toast({
+        title: "Login Failed",
+        description: res.error || "An error occurred during login.",
+        status: "error",
+      });
+      setIsLoading(false)
+    }
+
+    // axios
+    //   .post(`${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/login`, jsonData)
+    //   .then((res) => {
+    //     console.log(res);
+    //     if (res.status === 200) {
+    //       toast({
+    //         variant: "primary",
+    //         description: "Successfully logged in, now redirecting",
+    //       });
+
+    //       localStorage.setItem("edu_exchange_access_token", res.data.token);
+    //       fetchUserInfo();
+    //       router.push("/posts");
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     if (err.message.includes("403")) {
+    //       toast({
+    //         variant: "destructive",
+    //         description: "Username or password incorrect",
+    //       });
+    //     } else {
+    //       toast({
+    //         variant: "destructive",
+    //         description: err.message,
+    //       });
+    //     }
+    //   })
+    //   .finally(() => {
+    //     setIsLoading(false);
+    //   });
   };
 
   return (
     <>
-      <div className="flex items-center flex-1 flex-col justify-center px-6 py-12 lg:px-8 w-screen h-screen" style={{backgroundImage: `url("bgimg.png")`}}>
+      <div
+        className="flex items-center flex-1 flex-col justify-center px-6 py-12 lg:px-8 w-screen h-screen"
+        style={{ backgroundImage: `url("bgimg.png")` }}
+      >
         <div className="">
           <div className=" sm:mx-auto sm:w-full sm:max-w-sm shadow-lg px-10  py-8 rounded-xl bg-white">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm ">
@@ -122,6 +155,7 @@ export default function LoginPage() {
                 text="Sign in"
                 className="flex w-full justify-center fursor-pointer py-2 px-6 rounded-md bg-custom-orange text-sm font-black text-white"
                 type="submit"
+                isLoading={isLoading}
               />
             </form>
 

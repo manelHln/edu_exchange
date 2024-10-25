@@ -1,34 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import Select from 'react-select';
-import makeAnimated from 'react-select/animated';
-import axiosRequest from '@/utils/axiosRequest';
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const animatedComponents = makeAnimated();
 
-const formatOptionLabel = ({ name}) => (
-    <div style={{ flex: "10" }}>
-      <h5>{name}</h5>
-    </div>
-  );
+const formatOptionLabel = ({ name }) => (
+  <div style={{ flex: "10" }}>
+    <h5>{name}</h5>
+  </div>
+);
 
-export default function TopicsList({setSelectedTopics}) {
-    const [topics, setTopics] = useState(null)
+export default function TopicsList({ setSelectedTopics }) {
+  const [topics, setTopics] = useState(null);
+  const { data: session, status } = useSession();
 
-    useEffect(()=>{
-        axiosRequest.get("/topics").then(res => {
-            if(res.status === 200){
-                console.log(res.data)
-                setTopics(res.data?.content)
-            }
-        }).catch(err => console.log(err))
-    }, [])
+  useEffect(() => {
+    axios
+      .get("/topics", { headers: { Authorization: session.accessToken } })
+      .then((res) => {
+        if (res.status === 200) {
+          console.log(res.data);
+          setTopics(res.data?.content);
+        }
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
-    const handleChange = (val) => {
-        const topics = val.map((v) => v.name);
-        setSelectedTopics(topics)
-    }
-    
+  const handleChange = (val) => {
+    const topics = val.map((v) => v.name);
+    setSelectedTopics(topics);
+  };
 
   return (
     <Select
@@ -36,10 +40,10 @@ export default function TopicsList({setSelectedTopics}) {
       components={animatedComponents}
       isMulti
       options={topics}
-      getOptionLabel={option =>`${option.name}`}
-      getOptionValue={option =>`${option.name}`}
+      getOptionLabel={(option) => `${option.name}`}
+      getOptionValue={(option) => `${option.name}`}
       onChange={handleChange}
-      className='z-20'
+      className="z-20"
     />
   );
 }

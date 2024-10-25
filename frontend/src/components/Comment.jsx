@@ -7,21 +7,26 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import Image from "next/image";
-import { girl_1 } from "@/assets/images";
 import UserInfoSheet from "./UserInfoSheet";
-import axiosRequest from "@/utils/axiosRequest";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const Comment = ({ data }) => {
+  const {data: session, status} = useSession({required: true})
   const handleUpvote = () => {
-    axiosRequest
-      .post(`/votes/${data.id}`, { status: true })
+    axios
+      .post(`/votes/${data.id}`, { status: true }, {headers: {
+        Authorization: session.accessToken
+      }})
       .then((res) => console.log(res))
       .catch((err) => console.log(err));
   };
 
   const handleDownVote = () => {
-    axiosRequest
-      .post(`/votes/${data.id}`, { status: false })
+    axios
+      .post(`/votes/${data.id}`, { status: false }, {headers: {
+        Authorization: session.accessToken
+      }})
       .then((res) => console.log(res))
       .catch((err) => console.log(err));
   };

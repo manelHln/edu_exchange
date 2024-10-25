@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import axiosRequest from "@/utils/axiosRequest";
 import { Button } from "./ui/button";
 import { Editor } from "@tinymce/tinymce-react";
 import { useToast } from "./ui/use-toast";
@@ -9,8 +8,11 @@ import { useUserInfoStore } from "@/store/userInfoStore";
 import globalStore from "@/store/globalStore";
 import InputWithLabel from "./InputWithLabel";
 import TopicsList from "./TopicsList";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const CreatePostForm = ({ closeModal }) => {
+  const {data: session, status} = useSession({required: true})
   const { toast } = useToast();
   const userInfo = useUserInfoStore((state) => state.userInfo);
   const setShouldRefetch = globalStore((state) => state.setShouldRefetchData);
@@ -36,8 +38,8 @@ const CreatePostForm = ({ closeModal }) => {
           userId: userInfo.id,
           topicNames: topics,
         };
-        axiosRequest
-          .post("/posts", data)
+        axios
+          .post("/posts", data, {headers: {Authorization: session.accessToken}})
           .then((response) => {
             setShouldRefetch(true);
             toast({

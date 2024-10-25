@@ -9,8 +9,9 @@ import { girl_1 } from "@/assets/images";
 import Image from "next/image";
 import UserInfoSheet from "./UserInfoSheet";
 import Link from "next/link";
-import axiosRequest from "@/utils/axiosRequest";
 import { UsersList } from "./UsersList";
+import { useSession } from "next-auth/react";
+import axios from "axios";
 
 const user = {
   fullname: "Michael B",
@@ -18,22 +19,35 @@ const user = {
 };
 
 const ChatSidebar = ({ props }) => {
+  const [conversations, setConversations] = useState(null);
+  const [users, setUsers] = useState(null);
+  const { data: session, status } = useSession({ required: true });
 
-  const [conversations, setConversations] = useState(null)
-  const [users, setUsers] = useState(null)
+  useEffect(() => {
+    axios
+      .get("/admin/users", {
+        headers: {
+          Authorization: session.accessToken,
+        },
+      })
+      .then((res) => {
+        setUsers(res.data);
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
-  useEffect(()=>{
-    axiosRequest.get("/admin/users").then(res => {
-      setUsers(res.data)
-    }).catch(err => console.log(err))
-  }, [])
-
-  useEffect(()=>{
-    axiosRequest.get("/conversations").then(res => {
-      console.log(res)
-    }).catch(err => console.log(err))
-  }, [])
-
+  useEffect(() => {
+    axios
+      .get("/conversations", {
+        headers: {
+          Authorization: session.accessToken,
+        },
+      })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
   return (
     <div className="flex w-1/3 sticky top-0 bottom-0 h-screen overflow-scroll no-scrollbar overflow-x-hidden border-r-slate-300 border-r">

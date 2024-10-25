@@ -1,7 +1,7 @@
 # Stage 1: Build the Next.js app
 FROM node
 
-WORKDIR /app
+WORKDIR /app/frontend
 
 COPY package.json package-lock.json ./
 

@@ -8,11 +8,13 @@ services:
     container_name: edu_exchange_api
     ports:
       - "9898:9898"
+    volumes:
+      - ./api:/app/backend
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:edu_exchange_database://edu_exchange_database:5432/edu_exchange_db
-      - SPRING_DATASOURCE_DRIVER-CLASS= org.postgresql.Driver
-    networks:
-      - edu_exchange_network
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://edu_exchange_database:5432/edu_exchange_db
+      - SPRING_DATASOURCE_USERNAME=edu_db_user
+      - SPRING_DATASOURCE_PASSWORD=gangbang
+      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=org.postgresql.Driver
 
   edu_exchange_frontend:
     build:
@@ -22,24 +24,18 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/edu_exchange_frontend_volume
-      - .:/edu_exchange_frontend_volume/node_modules
-    networks:
-      - edu_exchange_network
+      - ./frontend:/app/frontend
+      # - /usr/src/app/node_modules
 
   edu_exchange_database:
     image: postgres
     restart: always
     environment:
       POSTGRES_DB: edu_exchange_db
-      POSTGRES_PASSWORD: gangbang
       POSTGRES_USER: edu_db_user
+      POSTGRES_PASSWORD: gangbang
       PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     volumes:
-      - .:/edu_exchange_db_volume/postgres
-    networks:
-      - edu_exchange_network
-
-networks:
-  edu_exchange_network:
-    driver: bridge
+      - ./db_data:/var/lib/postgresql/data

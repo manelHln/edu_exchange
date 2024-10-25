@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import axiosRequest from "@/utils/axiosRequest";
 import { useToast } from "./ui/use-toast";
-import store from "@/store/globalStore";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const ReportForm = ({ userId, postId }) => {
   const { toast } = useToast();
   const [reason, setReason] = useState("");
+  const { data: session, status } = useSession({ required: true });
 
   const handleSendReport = (e) => {
     const data = {
@@ -15,8 +16,10 @@ const ReportForm = ({ userId, postId }) => {
       reporterId: userId,
       postId: postId,
     };
-    axiosRequest
-      .post(`/posts/${postId}/reports`, data)
+    axios
+      .post(`/posts/${postId}/reports`, data, {
+        headers: { Authorization: session.accessToken },
+      })
       .then((response) => {
         toast({
           title: "Great!",

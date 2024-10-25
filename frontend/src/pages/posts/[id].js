@@ -1,16 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowBigDown, ArrowBigUp, MessageSquare, Flag, ThumbsDown, ThumbsUp } from "lucide-react";
+import {
+  ArrowBigDown,
+  ArrowBigUp,
+  MessageSquare,
+  Flag,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
 import PostPageNavbar from "@/components/PostPageNavbar";
 import { Editor } from "@tinymce/tinymce-react";
 import { Button } from "@/components/ui/button";
 import Comment from "@/components/Comment";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/router";
-import axiosRequest from "@/utils/axiosRequest";
 import { useUserInfoStore } from "@/store/userInfoStore";
 import TimeAgo from "timeago-react";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const SinglePostPage = () => {
+  const { data: session, status } = useSession({ required: true });
   const [postData, setPostData] = useState(null);
   const [postComments, setPostComments] = useState([]);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
@@ -22,8 +31,10 @@ const SinglePostPage = () => {
   const postId = router.query.id;
 
   const fetchComments = () => {
-    axiosRequest
-      .get(`/posts/${postId}/comments`)
+    axios
+      .get(`/posts/${postId}/comments`, {
+        headers: { Authorization: session.accessToken },
+      })
       .then((res) => {
         setPostComments(res.data?.content);
       })
@@ -39,8 +50,10 @@ const SinglePostPage = () => {
 
   useEffect(() => {
     if (!postId) return;
-    axiosRequest
-      .get(`/posts/${postId}`)
+    axios
+      .get(`/posts/${postId}`, {
+        headers: { Authorization: session.accessToken },
+      })
       .then((res) => {
         if (res.status === 200) {
           setPostData(res.data);
@@ -88,8 +101,10 @@ const SinglePostPage = () => {
         authorId: userInfo.id,
         postId: postId,
       };
-      axiosRequest
-        .post("comments", data)
+      axios
+        .post("comments", data, {
+          headers: { Authorization: session.accessToken },
+        })
         .then((res) => {
           if (res.status === 200) {
             setIsLoadingComments(true);

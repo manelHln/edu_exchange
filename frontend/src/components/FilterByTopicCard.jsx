@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import axiosRequest from "@/utils/axiosRequest";
 import { Badge } from "@/components/ui/badge";
 import CustomBadge from "./CustomBadge";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 // const topics = ["Java", "Spring boot", "Programming", "Spring security"];
 
@@ -16,10 +17,11 @@ const colors = [
 
 const FilterByTopicCard = ({ handleFilter }) => {
   const [topics, setTopics] = useState(null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    axiosRequest
-      .get("/topics")
+    axios
+      .get("/topics", { headers: { Authorization: session.accessToken } })
       .then((res) => {
         if (res.status === 200) {
           console.log(res.data);
